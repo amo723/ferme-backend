@@ -4,6 +4,7 @@ import User from "../../models/User";
 import Visit from "../../models/Visit";
 import HospitalRepository from "./repository";
 import { BadResponse } from "../errors";
+import { Doctor } from "../../models/Doctor";
 
 
 class ProdHospitalRepository extends HospitalRepository {
@@ -24,7 +25,7 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les details du patient depuis l'hopital (${response.status})`, "O3")
             })
             .then(result => {
                 const person = result.person;
@@ -56,7 +57,7 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer l'utilisateur depuis l'hopital (${response.status})`, "O3")
             })
             .then(result => {
                 const person = result.person;
@@ -69,7 +70,7 @@ class ProdHospitalRepository extends HospitalRepository {
         return result;
     }
 
-    async getDoctors(): Promise<Array<User>> {
+    async getDoctors(): Promise<Array<Doctor>> {
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -77,21 +78,25 @@ class ProdHospitalRepository extends HospitalRepository {
             method: 'GET',
             headers: myHeaders,
         };
-        let doctors: Array<User> = [];
-        await fetch(`${O3_BASE_URL}/provider?v=custom:(person:(uuid,display))`, requestOptions)
+        let doctors: Array<Doctor> = [];
+        await fetch(`${O3_BASE_URL}/provider?v=custom:(uuid,identifier,person:(uuid,display))`, requestOptions)
             .then(response => {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les docteurs depuis l'hopital (${response.status})`, "O3")
             })
             .then(({ results }) => {
                 const data: Array<any> = results
                 data.forEach((doctor) => {
                     doctors.push(
                         {
-                            id: doctor.person.uuid,
-                            names: doctor.person.display,
+                            uuid: doctor.uuid,
+                            username: doctor.identifier,
+                            person: {
+                                uuid: doctor.person.uuid,
+                                display: doctor.person.display
+                            },
                         }
                     )
                 })
@@ -99,7 +104,7 @@ class ProdHospitalRepository extends HospitalRepository {
         return doctors;
     }
 
-    async getDoctor(person_id: string): Promise<User> {
+    async getDoctor(uuid: string): Promise<Doctor> {
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -108,24 +113,53 @@ class ProdHospitalRepository extends HospitalRepository {
             headers: myHeaders,
         };
 
-        const result: User = await fetch(`${O3_BASE_URL}/person/${person_id}?v=custom:(uuid,display)`, requestOptions)
+        const result: Doctor = await fetch(`${O3_BASE_URL}/provider/${uuid}?v=custom:(uuid,identifier,person:(uuid,display))`, requestOptions)
             .then(response => {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer le docteur depuis l'hopital (${response.status})`, "O3")
             })
-            .then(({ uuid, display }) => {
+            .then((doctor) => {
                 return {
-                    id: uuid,
-                    names: display,
+                    uuid: doctor.uuid,
+                    username: doctor.identifier,
+                    person: {
+                        uuid: doctor.person.uuid,
+                        display: doctor.person.display
+                    },
                 }
             })
 
         return result;
     }
 
-    async getVisits(patient_id: string): Promise<Array<Visit>> {
+    // ajout AMO
+  async getVisits(patient_id: string): Promise<Array<Visit>> {
+    let myHeaders = new Headers();
+    myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+    let requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+    };
+
+    return await fetch(
+      `${O3_BASE_URL}/visit?patient=${patient_id}&v=custom:(uuid,encounters:(uuid,diagnoses:(uuid,display,rank,diagnosis),form:(uuid,display),encounterDatetime,orders:full,obs:full,encounterType:(uuid,display,viewPrivilege,editPrivilege),encounterProviders:(uuid,display,encounterRole:(uuid,display),provider:(uuid,person:(uuid,display)))),visitType:(uuid,name,display),startDatetime,stopDatetime,patient,attributes:(attributeType:ref,display,uuid,value)&limit=5`,
+      requestOptions
+    )
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new BadResponse();
+      })
+      .then((data) => {
+        return data.results;
+      });
+  }
+
+    /*async getVisits(patient_id: string): Promise<Array<Visit>> {
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -140,7 +174,7 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer la liste des visite depuis l'hopital (${response.status})`, "O3")
             })
             .then(({ results }) => {
                 const data: Array<any> = results;
@@ -172,7 +206,7 @@ class ProdHospitalRepository extends HospitalRepository {
             })
 
         return visits;
-    }
+    }*/
 
 
     async getConcept(code: string): Promise<any> {
@@ -189,11 +223,36 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer le concept depuis l'hopital (${response.status})`, "O3")
             })
     }
 
-    async getObservations(patient_id: string): Promise<Array<any>> {
+    // Ajout AMO
+  async getObservations(patient_id: string): Promise<Array<any>> {
+    let myHeaders = new Headers();
+    myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+    let requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+    };
+
+    return await fetch(
+      `${O3_BASEF_URL}/Observation?subject:Patient=${patient_id}&code=5085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5087AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5088AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5092AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5090AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C5242AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C165095AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2C1343AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&_summary=data&_sort=-date&_count=100`,
+      requestOptions
+    )
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new BadResponse();
+      })
+      .then((data) => {
+        return data.entry;
+      });
+  }
+
+    /*async getObservations(patient_id: string): Promise<Array<any>> {
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -207,13 +266,38 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les observations du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.entry
             })
-    }
+    }*/
 
-    async getMedications(patient_id: string): Promise<Array<any>> {
+  async getMedications(patient_id: string): Promise<Array<any>> {
+    let myHeaders = new Headers();
+    myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+    let requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+    };
+
+    //console.log(O3_BASE_URL);
+    return await fetch(
+      `${O3_BASE_URL}/order?patient=${patient_id}&t=drugorder&status=ACTIVE&v=custom:(uuid,dosingType,orderNumber,accessionNumber,patient:ref,action,careSetting:ref,previousOrder:ref,dateActivated,scheduledDate,dateStopped,autoExpireDate,orderType:ref,encounter:ref,orderer:(uuid,display,person:(display)),orderReason,orderReasonNonCoded,orderType,urgency,instructions,commentToFulfiller,drug:(uuid,display,strength,dosageForm:(display,uuid),concept),dose,doseUnits:ref,frequency:ref,asNeeded,asNeededCondition,quantity,quantityUnits:ref,numRefills,dosingInstructions,duration,durationUnits:ref,route:ref,brandName,dispenseAsWritten)`,
+      requestOptions
+    )
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new BadResponse();
+      })
+      .then((data) => {
+        return data.results;
+      });
+  }
+
+    /*async getMedications(patient_id: string): Promise<Array<any>> {
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -228,13 +312,43 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les médicaments du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.results
             })
-    }
+    }*/
 
-    async getAllergies(patient_id: string): Promise<Array<any>> {
+  // Ajout AMO
+  async getAllergies(patient_id: string): Promise<Array<any>> {
+    const res: any = [];
+    let myHeaders = new Headers();
+    myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+    let requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+    };
+
+    //console.log(O3_BASE_URL);
+    return await fetch(
+      `${O3_BASEF_URL}/AllergyIntolerance?patient=${patient_id}&_summary=data`,
+      requestOptions
+    )
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new BadResponse();
+      })
+      .then((data) => {
+        data.entry.map((item) => {
+          res.push(item.resource);
+        });
+        return res;
+      });
+  }
+
+    /*async getAllergies(patient_id: string): Promise<Array<any>> {
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -249,11 +363,11 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les allergies du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.entry
             })
-    }
+    }*/
 
     async getConditions(patient_id: string): Promise<Array<any>> {
         let myHeaders = new Headers();
@@ -270,7 +384,7 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les conditions du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.entry
             })
@@ -291,7 +405,7 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les imminizations du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.entry
             })
@@ -312,7 +426,7 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les attachements du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.results
             })
@@ -332,12 +446,148 @@ class ProdHospitalRepository extends HospitalRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recuperer les programmes du patient depuis l'hopital (${response.status})`, "O3")
             }).then((data) => {
                 return data.results
             })
     }
 
+
+    async getAppointements(): Promise<Array<any>> {
+        let myHeaders = new Headers();
+        myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+        let requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+        };
+
+        return await fetch(`${O3_BASE_URL}/appointments`, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                }
+                throw new BadResponse(`Impossible de recuperer les rencontres depuis l'hopital (${response.status})`, "O3")
+            })
+    }
+
+    async getPatientAppointements(patient_id: string): Promise<Array<any>> {
+
+        let myHeaders = new Headers();
+        myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+        const raw = JSON.stringify({
+            patientUuid: patient_id,
+            startDate: "2024-01-01"
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+        };
+
+        return await fetch(`${O3_BASE_URL}/appointments`, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                }
+                throw new BadResponse(`Impossible de recuperer les rencontres du patient depuis l'hopital (${response.status})`, "O3")
+            })
+    }
+
+    async getAppointement(appointment_id: string): Promise<any> {
+        let myHeaders = new Headers();
+        myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+        let requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+        };
+
+        return await fetch(`${O3_BASE_URL}/appointments/${appointment_id}`, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                }
+                throw new BadResponse(`Impossible de recuperer la depuis l'hopital (${response.status})`, "O3");
+            })
+    }
+
+    async createAppointement(patient_id: string, service_id: string, doctor_id: string, start_date: Date, end_date: Date): Promise<any> {
+
+        let myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+        const raw = JSON.stringify({
+            "appointmentKind": "Scheduled",
+            "serviceUuid": service_id,
+            "status": 'Cancelled',
+            "startDateTime": start_date.toISOString(),
+            "endDateTime": end_date.toISOString(),
+            "providers": [
+                {
+                    "uuid": doctor_id
+                }
+            ],
+            "patientUuid": patient_id
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw
+        };
+
+        return await fetch(`${O3_BASE_URL}/appointment`, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                }
+                throw new BadResponse(`Impossible de créer la rencontre depuis l'hopital (${response.status})`, "O3")
+            })
+    }
+
+    async setAppointement(appointment_id: string, patient_id: string, service_id: string, doctor_id: string, start_date: Date, end_date: Date, status: string = 'Scheduled'): Promise<any> {
+
+        let myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
+
+        const base_raw = {
+            "appointmentKind": "Scheduled",
+            "status": status,
+            "serviceUuid": service_id,
+            "startDateTime": start_date.toUTCString(),
+            "endDateTime": end_date.toUTCString(),
+            "patientUuid": patient_id,
+            "uuid": appointment_id,
+        };
+
+        const raw = JSON.stringify(doctor_id == "" ? base_raw : {
+            ...base_raw,
+            providers: [
+                {
+                    uuid: doctor_id
+                }
+            ],
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw
+        };
+
+        return await fetch(`${O3_BASE_URL}/appointment`, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                }
+                throw new BadResponse(`Impossible de mettre à jour la rencontre depuis l'hopital (${response.status})`, "O3")
+            })
+    }
 }
 
 export default ProdHospitalRepository

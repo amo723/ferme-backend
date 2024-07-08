@@ -48,6 +48,27 @@ class DoctorRouter extends BaseRouter {
          *         description: Error
          */
         this.router.get('/:id', this.controller.getDoctor);
+        
+        /**
+         * @swagger
+         * /doctor/{id}/appointment:
+         *   get:
+         *     summary: Get the list of appointments which are not unpayed for a doctor
+         *     tags: [Doctor]
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         schema:
+         *           type: string
+         *         required: true
+         *         description: The doctor id
+         *     responses:
+         *       200:
+         *         description: The list of a appointment
+         *       405:
+         *         description: Error
+         */
+        this.router.get('/:id/appointment', this.controller.getAppointments);
     }
 }
 

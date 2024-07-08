@@ -5,29 +5,14 @@ interface Room {
     name: string,
 }
 
-export type StatusRoomService = "pay" | "unpay";
-
-export type RoomServiceDocument = Document & {
+export type RoomDocument = Document & {
     uuidPatient: string,
-    uuidService: string,
     uuidDoctor: string,
-    tokenRoom: string,
-    status: StatusRoomService,
-    dateMeeting: Date;
+    tokenRoom: string
 }
 
-export type RoomServiceInput = {
-    uuidPatient: string,
-    uuidService: string,
-    uuidDoctor: string,
-}
-
-const RoomServiceSchema = new Schema({
+const RoomSchema = new Schema({
     uuidPatient: {
-        type: String,
-        //unique: true,
-    },
-    uuidService: {
         type: String,
         //unique: true,
     },
@@ -38,21 +23,12 @@ const RoomServiceSchema = new Schema({
     tokenRoom: {
         type: String,
         //unique: true,
-        default: ""
     },
-    status: {
-        type: String,
-        default: "unpay"
-    },
-    dateMeeting: {
-        type: Date,
-        default: new Date()
-    }
 
 }, {
-    collection: 'room_services'
+    collection: 'rooms'
 });
 
-export const RoomServiceModel = model<RoomServiceDocument>("RoomService", RoomServiceSchema);
+export const RoomModel = model<RoomDocument>("Room", RoomSchema);
 
 export default Room;

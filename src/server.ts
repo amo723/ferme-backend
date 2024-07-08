@@ -7,6 +7,9 @@ import bcrypt from "bcrypt";
 import { PatientModel as Patient } from "./models/Patient";
 import { port, dbURI, key_token, CORS_ALLOW_HOSTS } from "./config";
 
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+
 import Routes from "./routes";
 
 const app = express();
@@ -35,7 +38,11 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-app.post("/login", (req, res) => {
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+
+/*app.post("/login", (req, res) => {
   const { username, password } = req.body;
   Patient.findOne({ username }).then((patient) => {
     if (!patient) {
@@ -74,7 +81,7 @@ app.post("/login", (req, res) => {
   });
 });
 
-app.get("/protected", verifyJWT);
+app.get("/protected", verifyJWT);*/
 
 function verifyJWT(req: Request, res: Response) {
   const token = req.headers["authorization"]?.split(" ")[1];

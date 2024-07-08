@@ -1,3 +1,4 @@
+import { Doctor } from "../../models/Doctor";
 import { Patient } from "../../models/Patient";
 import User from "../../models/User";
 import Visit from "../../models/Visit";
@@ -23,15 +24,19 @@ class HospitalRepository {
         };
     }
 
-    async getDoctors(): Promise<Array<User>> {
+    async getDoctors(): Promise<Array<Doctor>> {
         return [];
     }
 
-    async getDoctor(person_id: string): Promise<User> {
+    async getDoctor(uuid: string): Promise<Doctor> {
 
         return {
-            id: "454588",
-            names: "Jake Doctor",
+            uuid: "454588",
+            username: "dof",
+            person: {
+                uuid: "sdsd",
+                display: 'ssdsd'
+            }
         };
     }
 
@@ -69,6 +74,26 @@ class HospitalRepository {
 
     async getPrograms(patient_id: string): Promise<Array<any>> {
         return [];
+    }
+
+    async getAppointements(): Promise<Array<any>> {
+        return [];
+    }
+
+    async getPatientAppointements(patient_id: string): Promise<Array<any>> {
+        return [];
+    }
+
+    async getAppointement(appointment_id: string): Promise<any> {
+        return {};
+    }
+
+    async createAppointement(patient_id: string, service_id: string, doctor_id: string, start_date: Date, end_date: Date): Promise<any> {
+        return {};
+    }
+
+    async setAppointement(appointment_id: string, patient_id: string, service_id: string, doctor_id: string, start_date: Date, end_date: Date, status: string = 'Scheduled'): Promise<any> {
+        return {}
     }
 
 }

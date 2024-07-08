@@ -5,7 +5,7 @@ import { BaseRouter } from './base';
 * @swagger
 * components:
 *   schemas:
-*     DemandDo:
+*     DemandInputCreate:
 *       type: object
 *       required:
 *         - service_id
@@ -21,30 +21,24 @@ import { BaseRouter } from './base';
 *         service_id: fg4sdfgdfg5sdfgdfg
 *         patient_id: fg4sdfgdfg5sdfgdfg
 *
-*     StateDemand:
+*     DemandInputValidate:
 *       type: object
 *       required:
-*         - service_id
-*         - patient_id
 *         - doctor_id
 *       properties:
-*         service_id:
-*           type: string
-*           description: id of service
-*         patient_id:
-*           type: string
-*           description: id of patient
 *         doctor_id:
 *           type: string
 *           description: id of doctor
 *         date_meeting:
 *           type: string
 *           description: date of meeting 
+*         duration:
+*           type: natural number
+*           description: duration of the meeting in minutes
 *       example:
-*         service_id: fgddfgdfg5gzdfgdfg
-*         patient_id: fg4sdfgdfg5sdfgdfg
 *         doctor_id: fg4sdfgdfg5sdfgdfg
 *         date_meeting: 2024-06-04T08:07:51
+*         duration: 30
 *
 */
 
@@ -66,12 +60,6 @@ class DemandRouter extends BaseRouter {
          *     summary: Get list of the demand
          *     tags: [Demand]
          *     parameters:
-         *       - in: path
-         *         name: id
-         *         schema:
-         *           type: string
-         *         required: true
-         *         description: The demand id
          *       - in: query
          *         name: service_id
          *         schema:
@@ -92,60 +80,70 @@ class DemandRouter extends BaseRouter {
 
         /**
          * @swagger
-         * /demand/create:
+         * /demand:
          *   post:
-         *     summary: do a demand for meeting
+         *     summary: create a demand
          *     tags: [Demand]
          *     requestBody:
          *       content:
          *         application/json:
          *           schema:
-         *             $ref: '#/components/schemas/DemandDo'
+         *             $ref: '#/components/schemas/DemandInputCreate'
          *     responses:
          *       201:
          *         description: The list of patient
          *       405:
          *         description: Error
          */
-        this.router.post('/create', this.controller.doDemand);
+        this.router.post('/new', this.controller.doDemand);
+
 
         /**
          * @swagger
-         * /demand/validate:
-         *   put:
+         * /demand/{id}/validate:
+         *   post:
          *     summary: validate a demand
          *     tags: [Demand]
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         schema:
+         *           type: string
+         *         required: true
+         *         description: The demand id
          *     requestBody:
          *       content:
          *         application/json:
          *           schema:
-         *             $ref: '#/components/schemas/StateDemand'
+         *             $ref: '#/components/schemas/DemandInputValidate'
          *     responses:
          *       201:
          *         description: demand is validated
          *       405:
          *         description: Error
          */
-        this.router.put('/validate', this.controller.validDemand);
+        this.router.post('/:id/validate', this.controller.validDemand);
 
         /**
          * @swagger
-         * /demand/reject:
+         * /demand/{id}/reject:
          *   put:
          *     summary: reject a demand
          *     tags: [Demand]
-         *     requestBody:
-         *       content:
-         *         application/json:
-         *           schema:
-         *             $ref: '#/components/schemas/DemandDo'
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         schema:
+         *           type: string
+         *         required: true
+         *         description: The demand id
          *     responses:
          *       201:
          *         description: demand is rejected
          *       405:
          *         description: Error
          */
-        this.router.put('/reject', this.controller.rejectDemand);
+        this.router.put('/:id/reject', this.controller.rejectDemand);
     }
 }
 

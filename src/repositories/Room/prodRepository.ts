@@ -37,11 +37,11 @@ class ProdRoomRepository extends RoomRepository {
                 const status = data.ocs.meta.statuscode as number
 
                 if (status != 102) {
-                    throw new BadResponse()
+                    throw new BadResponse("L'utilisateur existe déjà dans Talk", "TALK")
                 }
             }
         } else {
-            throw new BadResponse()
+            throw new BadResponse(`Impossible de créer un utilisateur (${response.status})`, "TALK")
         }
 
     }
@@ -67,7 +67,7 @@ class ProdRoomRepository extends RoomRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de créer une room (${response.status})`, "TALK")
             })
             .then(result => {
 
@@ -98,7 +98,7 @@ class ProdRoomRepository extends RoomRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible d'ajouter l'utilisateur à la room (${response.status})`, "TALK")
             })
     }
 
@@ -120,7 +120,7 @@ class ProdRoomRepository extends RoomRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recupérer les rooms liées à l'utilisateur (${response.status})`, "TALK")
             })
             .then(result => {
                 const data: Array<any> = result.ocs.data;
@@ -149,7 +149,12 @@ class ProdRoomRepository extends RoomRepository {
             headers: myHeaders,
         };
 
-        await fetch(`${TALK_BASE_URL}/room/${token_room}/public`, requestOptions);
+        await fetch(`${TALK_BASE_URL}/room/${token_room}/public`, requestOptions).then(response => {
+            if (response.ok) {
+                return response.json()
+            }
+            throw new BadResponse(`Impossible de rendre une room joignable par lien (${response.status})`, "TALK")
+        })
     }
 
 
@@ -175,7 +180,7 @@ class ProdRoomRepository extends RoomRepository {
             if (response.ok) {
                 return response.json()
             }
-            throw new BadResponse()
+            throw new BadResponse(`Impossible de mettre à jour le mot de passe du lien d'une room (${response.status})`, "TALK")
         });
     }
 
@@ -197,7 +202,7 @@ class ProdRoomRepository extends RoomRepository {
                 if (response.ok) {
                     return response.json()
                 }
-                throw new BadResponse()
+                throw new BadResponse(`Impossible de recupérer les participants (${response.status})`, "TALK")
             })
             .then(result => {
                 const data: Array<any> = result.ocs.data;
@@ -217,11 +222,11 @@ class ProdRoomRepository extends RoomRepository {
         return `${TALK_BASE_PASSWORD}`;
     }
 
-    async addParticipant(id: string, name: string, token: string): Promise<void> {
+    async addParticipant(username: string, displayName: string, token: string): Promise<void> {
         try {
-            const password = await this.getPasswordUser(id);
-            await this.createUser(id, name, password);
-            await this.addUserInRoom(token, id);
+            const password = await this.getPasswordUser(username);
+            await this.createUser(username, displayName, password);
+            await this.addUserInRoom(token, username);
 
         } catch (error) { }
     }
