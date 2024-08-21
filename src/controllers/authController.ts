@@ -1,22 +1,22 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { PatientModel as Patient } from "../models/Patient";
+import { UserModel as User } from "../models/User";
 import { CustomRequest, customResponse } from "src/types/custom";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, password } = req.body;
-    let patient = await Patient.findOne({ username });
+    const { name, username, password } = req.body;
+    let user = await User.findOne({ username });
 
-    if (patient) {
+    if (user) {
       res.status(400).json({ message: "User already exists" });
       return;
     }
 
-    patient = new Patient({ username, password });
-    await patient.save();
+    user = new User({ name, username, password });
+    await user.save();
 
-    const payload = { patient: { id: patient.id } };
+    const payload = { user: { id: user.id } };
     const token = jwt.sign(payload, process.env.KEY_TOKEN!, {
       expiresIn: "1h",
     });
@@ -32,7 +32,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
-    const user = await Patient.findOne({ username });
+    const user = await User.findOne({ username });
 
     if (!user) {
       res.status(400).json({ message: "Invalid credentials" });
@@ -46,7 +46,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const payload = { patient: { id: user.id } };
+    const payload = { user: { id: user.id } };
     // Generated token
     const token = jwt.sign(payload, process.env.KEY_TOKEN!, {
       expiresIn: "1h",
@@ -64,11 +64,11 @@ export const getUser = async (
   res: customResponse
 ): Promise<void> => {
   try {
-    if (!req.patient) {
+    if (!req.user) {
       res.status(401).json({ message: "Not authenticated" });
       return;
     }
-    const user = await Patient.findById(req.patient.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;

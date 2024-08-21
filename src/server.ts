@@ -4,8 +4,8 @@ import cors from "cors";
 import mongoose, { ConnectOptions } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { PatientModel as Patient } from "./models/Patient";
-import { port, dbURI, key_token, CORS_ALLOW_HOSTS } from "./config";
+import { UserModel as User } from "./models/User"
+import { port, dbURI, TOKEN_KEY, CORS_ALLOW_HOSTS } from "./config";
 
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
@@ -13,7 +13,7 @@ import userRoutes from "./routes/userRoutes";
 import Routes from "./routes";
 
 const app = express();
-const PORT = port;
+
 app.use(
   cors({
     origin: CORS_ALLOW_HOSTS,
@@ -34,7 +34,7 @@ mongoose
   .connect(dbURI, options)
   .then(() => {
     // only listen for requests once database data has loaded
-    app.listen(PORT, () => console.log(`Server has started at port ${PORT}`));
+    app.listen(port, () => console.log(`Server has started at port ${port}`));
   })
   .catch((err) => console.log(err));
 
@@ -42,51 +42,11 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
-/*app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  Patient.findOne({ username }).then((patient) => {
-    if (!patient) {
-      return res.json({
-        message: "Nom utilisateur ou mot de passe inccorect",
-        code: 400,
-      });
-    }
-    bcrypt.compare(password, patient.password, (err, result) => {
-      if (result) {
-        const payload = {
-          uuid: patient.uuid,
-          username: patient.username,
-          display: patient.person.display
-        };
-        jwt.sign(
-          payload,
-          key_token,
-          {
-            expiresIn: "1hr",
-          },
-          (err, token) => {
-            if (err) return res.json({ message: err });
-            return res.json({
-              message: "Success",
-              patient: patient,
-              token: "Bearer " + token,
-              code: 201,
-            });
-          }
-        );
-      } else {
-        return res.json({ message: "Invalid Username or Password", code: 400 });
-      }
-    });
-  });
-});
-
-app.get("/protected", verifyJWT);*/
 
 function verifyJWT(req: Request, res: Response) {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (token) {
-    jwt.verify(token, key_token, (err, decoded) => {
+    jwt.verify(token, TOKEN_KEY, (err, decoded) => {
       if (err || !decoded) {
         return res.status(403).json({
           isLoggedIn: false,

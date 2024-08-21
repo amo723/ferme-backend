@@ -18,9 +18,9 @@ const auth = (
   try {
     // Decoded token
     const decoded = jwt.verify(token, process.env.KEY_TOKEN!) as {
-      patient: { id: string; uuid: string; username: string; display: string };
+      user: { id: string; username: string; display: string };
     };
-    req.patient = decoded.patient;
+    req.user = decoded.user;
     next();
   } catch (error) {
     console.error("Token vérification failed:", error);

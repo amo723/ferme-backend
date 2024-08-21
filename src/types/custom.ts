@@ -1,11 +1,10 @@
-export interface PatientPayload {
+export interface UserPayload {
   id: string;
-  uuid: string;
   username: string;
 }
 
 export interface CustomRequest {
-  patient?: PatientPayload;
+  user?: UserPayload;
   [key: string]: any;
 }
 

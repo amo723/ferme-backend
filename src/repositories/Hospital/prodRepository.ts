@@ -11,7 +11,6 @@ class ProdHospitalRepository extends HospitalRepository {
 
     async getPatientDetail(patient_id: string): Promise<Patient> {
 
-
         let myHeaders = new Headers();
         myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -19,6 +18,7 @@ class ProdHospitalRepository extends HospitalRepository {
             method: 'GET',
             headers: myHeaders,
         };
+
 
         const result: Patient = await fetch(`${O3_BASE_URL}/patient/${patient_id}?v=full`, requestOptions)
             .then(response => {
@@ -36,6 +36,8 @@ class ProdHospitalRepository extends HospitalRepository {
                     age: person.age,
                     birthdate: new Date(person.birthdate),
                     birthdateEstimated: person.birthdateEstimated,
+                    preferredName:person.preferredName,
+                    preferredAddress:person.preferredAddress,
                 }
             })
 
@@ -136,6 +138,9 @@ class ProdHospitalRepository extends HospitalRepository {
 
     // ajout AMO
   async getVisits(patient_id: string): Promise<Array<Visit>> {
+    //`${O3_BASE_URL}/visit?patient=${patient_id}&v=custom:(uuid,encounters:(uuid,diagnoses:(uuid,display,rank,diagnosis),form:(uuid,display),encounterDatetime,orders:full,obs:full,encounterType:(uuid,display,viewPrivilege,editPrivilege),encounterProviders:(uuid,display,encounterRole:(uuid,display),provider:(uuid,person:(uuid,display)))),visitType:(uuid,name,display),startDatetime,stopDatetime,patient,attributes:(attributeType:ref,display,uuid,value)&limit=5`,
+
+    // `${O3_BASE_URL}/visit?patient=${patient_id}&v=custom:(uuid,encounters:(uuid,diagnoses:(uuid,display),form:(uuid,display),encounterDatetime,orders:(uuid,display),obs:(uuid,display,concept:(setMembers)),encounterType:(uuid,display,viewPrivilege,editPrivilege),encounterProviders:(uuid,display,encounterRole:(uuid,display),provider:(uuid,person:(uuid,display)))),visitType:(uuid,name,display),startDatetime,stopDatetime&limit=5`,
     let myHeaders = new Headers();
     myHeaders.append("Authorization", `Basic ${O3_BASE64}`);
 
@@ -145,7 +150,7 @@ class ProdHospitalRepository extends HospitalRepository {
     };
 
     return await fetch(
-      `${O3_BASE_URL}/visit?patient=${patient_id}&v=custom:(uuid,encounters:(uuid,diagnoses:(uuid,display,rank,diagnosis),form:(uuid,display),encounterDatetime,orders:full,obs:full,encounterType:(uuid,display,viewPrivilege,editPrivilege),encounterProviders:(uuid,display,encounterRole:(uuid,display),provider:(uuid,person:(uuid,display)))),visitType:(uuid,name,display),startDatetime,stopDatetime,patient,attributes:(attributeType:ref,display,uuid,value)&limit=5`,
+      `${O3_BASE_URL}/visit?patient=${patient_id}&v=custom:(uuid,encounters:(uuid,diagnoses:(uuid,display,diagnosis),form:(uuid,display),encounterDatetime,orders:(uuid,display),obs:full,encounterType:(uuid,display),encounterProviders:(uuid,display,encounterRole:(uuid,display),provider:(uuid,person:(uuid,display)))),visitType:(uuid,name,display),startDatetime,stopDatetime&limit=5`,
       requestOptions
     )
       .then((response) => {

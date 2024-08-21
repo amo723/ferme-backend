@@ -1,4 +1,4 @@
-import Room from "../models/Room";
+import Room from "../models/SortieSujet";
 import { TALK_HOST, TALK_PORT } from "../repositories/env";
 
 class BaseController {
