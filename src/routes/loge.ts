@@ -69,7 +69,7 @@ class LogeRouter extends BaseRouter {
      *         name: patient_id
      *         schema:
      *           type: string
-     *         description: The patient id
+     *         description: The loge id
      *     responses:
      *       200:
      *         description: The typeLoge
@@ -91,11 +91,30 @@ class LogeRouter extends BaseRouter {
      *             $ref: '#/components/schemas/TypeLogeInputCreate'
      *     responses:
      *       201:
-     *         description: The list of patient
+     *         description: Loge added
      *       405:
      *         description: Error
      */
     this.router.post("/new", this.controller.newLoge);
+
+    /**
+     * @swagger
+     * /typeLoge:
+     *   post:
+     *     summary: create a typeLoge
+     *     tags: [TypeLoge]
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/TypeLogeInputCreate'
+     *     responses:
+     *       204:
+     *         description: Loge deleted
+     *       405:
+     *         description: Error
+     */
+    this.router.delete("/delete/:id", this.controller.deleteLoge);
   }
 }
 

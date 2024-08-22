@@ -18,10 +18,11 @@ class RecolteController {
 
       for (let i = 0; i < recoltes.length; i++) {
         const element = recoltes[i];
-
         const recolte = {
           id: element.id,
           nbrePonte: element.nbrePonte,
+          dateRecolte: element.dateRecolte,
+          observation: element.observation,
         };
         output.push(recolte);
       }

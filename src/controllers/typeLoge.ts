@@ -5,6 +5,7 @@ import { ferme_rep } from "../repositories";
 class TypeLogeController {
   async getTypeLoges(req: Request, res: Response) {
     try {
+      
       const surface = req.query.surface;
 
       const filter = {};
@@ -16,6 +17,7 @@ class TypeLogeController {
       const typeLoges = await TypeLogeModel.find(filter)
         .sort("-surface")
         .exec();
+        console.log(typeLoges)
       const output: Array<any> = [];
 
       for (let i = 0; i < typeLoges.length; i++) {
