@@ -16,7 +16,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: CORS_ALLOW_HOSTS,
+    origin: "*",
     credentials: true,
   })
 );

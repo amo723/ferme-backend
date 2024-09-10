@@ -115,6 +115,24 @@ class SujetController {
       res.status(405).send({ name: err.name, message: err.message });
     }
   }
+
+  async deleteSujet(req: Request, res: Response) {
+    try {
+      const _id = req.params.id;
+
+      const result = await EntreeSujetModel.findByIdAndDelete(_id);
+
+      if (result) {
+        console.log("Sujet supprimé avec succès");
+        res.status(204).json({ message: "Sujet supprimé avec succès" });
+      } else {
+        console.log("Aucun sujet trouvé avec cet ID");
+      }
+    } catch (error) {
+      const err: any = error;
+      res.status(405).send({ name: err.name, message: err.message });
+    }
+  }
 }
 
 export default SujetController;

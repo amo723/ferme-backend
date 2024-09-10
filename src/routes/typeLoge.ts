@@ -97,6 +97,26 @@ class TypeLogeRouter extends BaseRouter {
          */
         this.router.post('/new', this.controller.newTypeLoge);
 
+
+        /**
+         * @swagger
+         * /typeLoge:
+         *   post:
+         *     summary: create a typeLoge
+         *     tags: [TypeLoge]
+         *     requestBody:
+         *       content:
+         *         application/json:
+         *           schema:
+         *             $ref: '#/components/schemas/TypeLogeInputCreate'
+         *     responses:
+         *       201:
+         *         description: The list of patient
+         *       405:
+         *         description: Error
+         */
+        this.router.delete("/delete/:id", this.controller.deleteTypeLoge);
+
     }
 }
 

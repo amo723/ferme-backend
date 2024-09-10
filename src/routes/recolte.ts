@@ -96,6 +96,25 @@ class RecolteRouter extends BaseRouter {
      *         description: Error
      */
     this.router.post("/new", this.controller.newRecolte);
+
+    /**
+     * @swagger
+     * /Sujet:
+     *   post:
+     *     summary: delete a recolte
+     *     tags: [Sujet]
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/EntreSujetInputCreate'
+     *     responses:
+     *       204:
+     *         description: recolte deleted
+     *       405:
+     *         description: Error
+     */
+    this.router.delete("/delete/:id", this.controller.deleteRecolte);
   }
 }
 

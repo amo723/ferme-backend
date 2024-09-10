@@ -32,6 +32,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
+    console.log('test', req.body)
+
     const user = await User.findOne({ username });
 
     if (!user) {

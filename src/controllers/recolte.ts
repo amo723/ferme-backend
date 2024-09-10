@@ -80,6 +80,24 @@ class RecolteController {
       res.status(405).send({ name: err.name, message: err.message });
     }
   }
+
+  async deleteRecolte(req: Request, res: Response) {
+    try {
+      const _id = req.params.id;
+
+      const result = await RecolteModel.findByIdAndDelete(_id);
+
+      if (result) {
+        console.log("Recolte supprimée avec succès");
+        res.status(204).json({ message: "Recolte supprimée avec succès" });
+      } else {
+        console.log("Aucune récolte trouvée avec cet ID");
+      }
+    } catch (error) {
+      const err: any = error;
+      res.status(405).send({ name: err.name, message: err.message });
+    }
+  }
 }
 
 export default RecolteController;

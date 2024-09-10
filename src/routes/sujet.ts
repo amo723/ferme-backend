@@ -115,6 +115,25 @@ class SujetRouter extends BaseRouter {
      *         description: Error
      */
     this.router.post("/sortie/new", this.controller.sortieSujet);
+
+    /**
+     * @swagger
+     * /Sujet:
+     *   post:
+     *     summary: create a Sujet
+     *     tags: [Sujet]
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/EntreSujetInputCreate'
+     *     responses:
+     *       201:
+     *         description: The list of sujet
+     *       405:
+     *         description: Error
+     */
+    this.router.delete("/delete/:id", this.controller.deleteSujet);
   }
 }
 

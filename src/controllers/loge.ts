@@ -80,9 +80,11 @@ class LogeController {
 
   async deleteLoge(req: Request, res: Response) {
     try {
-      const id = req.params.id;
+      const _id = req.params.id;
 
-      const result = await LogeModel.findByIdAndDelete(id);
+      console.log(_id);
+
+      const result = await LogeModel.findByIdAndDelete(_id);
 
       if (result) {
         console.log("Loge supprimée avec succès");
