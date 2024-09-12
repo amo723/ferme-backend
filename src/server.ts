@@ -1,70 +1,68 @@
-import express, { Request, Response } from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import https from 'https';
+import fs from 'fs';
+import bodyParser from 'body-parser';
 import mongoose, { ConnectOptions } from "mongoose";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import { UserModel as User } from "./models/User"
-import { port, dbURI, TOKEN_KEY, CORS_ALLOW_HOSTS } from "./config";
+
+import { PatientModel as Patient } from "./models/Patient";
+import { port, dbURI, CORS_ALLOW_HOSTS, KEY_PATH, CERT_PATH } from "./config";
 
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
-
 import Routes from "./routes";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+// Enable CORS for all origins (customize as needed)
+app.use(cors({
+  origin: '*', // You can restrict this to your Android app’s URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
-// use bodyParser middleware to receive form data
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
-app.use(bodyParser.json(), urlencodedParser);
+// Parsing requests with JSON payloads
+app.use(bodyParser.json());
 
-// connects to mongoDB database
-// second parameter removes deprecation errors
+// Add custom headers for Android requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Accept', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust as needed for security
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  next();
+});
 
-const options: ConnectOptions = {};
+// Define basic route
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'API is working properly' });
+});
+
+// HTTPS Configuration
+const httpsOptions = {
+  key: fs.readFileSync(KEY_PATH),
+  cert: fs.readFileSync(CERT_PATH)
+};
 
 mongoose
   .connect(dbURI, options)
   .then(() => {
     // only listen for requests once database data has loaded
-    app.listen(port, () => console.log(`Server has started at port ${port}`));
+    //app.listen(PORT, () => console.log(`Server has started at port ${PORT}`));
+    https.createServer(httpsOptions, app).listen(port, () => {
+        console.log(`Server running on https://localhost:${port}`);
+    });
   })
   .catch((err) => console.log(err));
+  
+  /*https.createServer(httpsOptions, app).listen(port, () => {
+    console.log('Server running on https://localhost:443');
+  });*/
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
+//Routes.register(app)
 
-function verifyJWT(req: Request, res: Response) {
-  const token = req.headers["authorization"]?.split(" ")[1];
-  if (token) {
-    jwt.verify(token, TOKEN_KEY, (err, decoded) => {
-      if (err || !decoded) {
-        return res.status(403).json({
-          isLoggedIn: false,
-          message: "Failed to Authenticate",
-        });
-
-      }
-      res.json({
-        uuid: (decoded as jwt.JwtPayload).uuid,
-        username: (decoded as jwt.JwtPayload).username,
-        display: (decoded as jwt.JwtPayload).display
-      });
-
-    });
-  } else {
-
-    res.status(403).json({ message: "Incorrect Token Given", isLoggedIn: false });
-  }
-}
-
-Routes.register(app)
